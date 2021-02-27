@@ -78,16 +78,21 @@ func main() {
 						continue
 					}
 
-					dirs := internal.DiffDirs(localReg, remoteReg)
+					dirs := internal.DiffDirs(remoteReg)
 					for _, d := range dirs {
-						os.Mkdir(d, os.ModePerm)
+						log.Println("INFO", "create directory", d)
+						err = os.MkdirAll(d, os.ModePerm)
+						if err != nil {
+							log.Println("ERR", err.Error())
+							continue
+						}
 					}
 
 					diffReg := internal.DiffFiles(localReg, remoteReg)
 
 					for _, filePort := range allowedFilePorts {
 						for _, filename := range diffReg {
-							log.Println("INFO", "download file ", filename)
+							log.Println("INFO", "download file", filename)
 
 							// Get the data
 							resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", h, filePort, filename))

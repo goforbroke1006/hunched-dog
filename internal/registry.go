@@ -23,6 +23,10 @@ func GetLocal(directory string) (Registry, error) {
 			return err
 		}
 
+		if path == directory {
+			return nil
+		}
+
 		relFilename := strings.TrimPrefix(path, directory+"/")
 
 		reg = append(reg, MetaFile{
@@ -36,7 +40,7 @@ func GetLocal(directory string) (Registry, error) {
 	return reg, err
 }
 
-func DiffDirs(local, remote Registry) []string {
+func DiffDirs(remote Registry) []string {
 	result := []string{}
 
 	for _, rf := range remote {
@@ -44,20 +48,7 @@ func DiffDirs(local, remote Registry) []string {
 			continue
 		}
 
-		notFound := true
-		for _, lf := range local {
-			if rf.Filename != lf.Filename {
-				continue
-			}
-			notFound = false
-
-			if rf.UpdatedAt > lf.UpdatedAt {
-				result = append(result, rf.Filename)
-			}
-		}
-		if notFound {
-			result = append(result, rf.Filename)
-		}
+		result = append(result, rf.Filename)
 	}
 
 	return result
