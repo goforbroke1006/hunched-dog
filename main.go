@@ -3,23 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"hunched-dog/internal"
+	"hunched-dog/pkg/shutdowner"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
-
-	"hunched-dog/pkg/shutdowner"
 )
-
-type MetaFile struct {
-	Filename  string `json:"filename"`
-	Size      int64  `json:"size"`
-	UpdatedAt int64  `json:"updated_at"`
-}
-type Registry []MetaFile
 
 func main() {
 
@@ -34,21 +26,9 @@ func main() {
 
 	go func() {
 		http.HandleFunc("/registry", func(w http.ResponseWriter, req *http.Request) {
-			reg := Registry{}
-
-			err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				reg = append(reg, MetaFile{
-					Filename:  path,
-					Size:      info.Size(),
-					UpdatedAt: info.ModTime().Unix(),
-				})
-				return nil
-			})
+			reg, err := internal.GetLocal(directory)
 			if err != nil {
-				log.Println(err)
+				log.Fatal(err)
 			}
 
 			bytes, err := json.MarshalIndent(reg, "", "  ")
@@ -71,59 +51,63 @@ func main() {
 	}()
 
 	go func() {
-		ticker := time.NewTicker(30 * time.Second)
 		for {
-			select {
-			case <-ticker.C:
-				for _, h := range hosts {
-					for _, p := range allowedPorts {
-						resp, err := http.Get(fmt.Sprintf("http://%s:%d/registry", h, p))
-						if err != nil {
-							log.Println("ERR", err.Error())
-						}
+			for _, h := range hosts {
+				for _, p := range allowedPorts {
+					resp, err := http.Get(fmt.Sprintf("http://%s:%d/registry", h, p))
+					if err != nil {
+						log.Println("ERR", err.Error())
+					}
 
-						bytes, err := ioutil.ReadAll(resp.Body)
-						if err != nil {
-							log.Println("ERR", err.Error())
-						}
-						remoteReg := Registry{}
-						err = json.Unmarshal(bytes, &remoteReg)
-						if err != nil {
-							log.Println("ERR", err.Error())
-						}
+					bytes, err := ioutil.ReadAll(resp.Body)
+					if err != nil {
+						log.Println("ERR", err.Error())
+					}
+					remoteReg := internal.Registry{}
+					err = json.Unmarshal(bytes, &remoteReg)
+					if err != nil {
+						log.Println("ERR", err.Error())
+					}
 
-						diffReg := Registry{}
-						diffReg = remoteReg
+					localReg, err := internal.GetLocal(directory)
+					if err != nil {
+						log.Println("ERR", err.Error())
+					}
+					diffReg := internal.Diff(localReg, remoteReg)
 
-						for _, filePort := range allowedFilePorts {
-							for _, file := range diffReg {
+					for _, filePort := range allowedFilePorts {
+						for _, filename := range diffReg {
+							log.Println("INFO", "download file ", filename)
 
-								// Get the data
-								resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", h, filePort, file.Filename))
-								if err != nil {
-									log.Println("ERR", err.Error())
-									continue
-								}
-								defer resp.Body.Close()
+							// Get the data
+							resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", h, filePort, filename))
+							if err != nil {
+								log.Println("ERR", err.Error())
+								continue
+							}
+							defer resp.Body.Close()
 
-								out, err := os.Create(directory + "/" + file.Filename)
-								if err != nil {
-									log.Println("ERR", err.Error())
-									continue
-								}
-								defer out.Close()
+							out, err := os.Create(directory + "/" + filename)
+							if err != nil {
+								log.Println("ERR", err.Error())
+								continue
+							}
+							defer out.Close()
 
-								// Writer the body to file
-								_, err = io.Copy(out, resp.Body)
-								if err != nil {
-									log.Println("ERR", err.Error())
-									continue
-								}
+							// Writer the body to file
+							_, err = io.Copy(out, resp.Body)
+							if err != nil {
+								log.Println("ERR", err.Error())
+								continue
 							}
 						}
+
+						break // TODO: fix port availability check
 					}
 				}
 			}
+
+			time.Sleep(30 * time.Second)
 		}
 	}()
 
