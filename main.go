@@ -81,7 +81,7 @@ func main() {
 					dirs := internal.DiffDirs(remoteReg)
 					for _, d := range dirs {
 						log.Println("INFO", "create directory", d)
-						err = os.MkdirAll(d, os.ModePerm)
+						err = os.MkdirAll(directory+"/"+d, os.ModePerm)
 						if err != nil {
 							log.Println("ERR", err.Error())
 							continue
