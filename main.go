@@ -3,20 +3,43 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"hunched-dog/internal"
-	"hunched-dog/pkg/shutdowner"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/spf13/viper"
+
+	"hunched-dog/internal"
+	"hunched-dog/pkg/shutdowner"
 )
+
+func init() {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yml")
+	viper.AddConfigPath("$HOME/.hunched-dog")
+	viper.AddConfigPath(".")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+}
 
 func main() {
 
+	targetDirectory := viper.GetString("target")
+	targetDirectory = ReplacePath(targetDirectory)
+
+	log.Println("INFO", "create directory", targetDirectory)
+	err := os.MkdirAll(targetDirectory, os.ModePerm)
+	if err != nil {
+		log.Fatalln("ERR", err.Error())
+	}
+
 	go func() {
-		fs := http.FileServer(http.Dir(directory))
+		fs := http.FileServer(http.Dir(targetDirectory))
 		for _, port := range allowedFilePorts {
 			if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), fs); err != nil {
 				log.Println("WARN", "can't listen port", port, ":", err.Error())
@@ -26,7 +49,7 @@ func main() {
 
 	go func() {
 		http.HandleFunc("/registry", func(w http.ResponseWriter, req *http.Request) {
-			reg, err := internal.GetLocal(directory)
+			reg, err := internal.GetLocal(targetDirectory)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -72,7 +95,7 @@ func main() {
 						continue
 					}
 
-					localReg, err := internal.GetLocal(directory)
+					localReg, err := internal.GetLocal(targetDirectory)
 					if err != nil {
 						log.Println("ERR", err.Error())
 						continue
@@ -81,7 +104,7 @@ func main() {
 					dirs := internal.DiffDirs(remoteReg)
 					for _, d := range dirs {
 						log.Println("INFO", "create directory", d)
-						err = os.MkdirAll(directory+"/"+d, os.ModePerm)
+						err = os.MkdirAll(targetDirectory+"/"+d, os.ModePerm)
 						if err != nil {
 							log.Println("ERR", err.Error())
 							continue
@@ -102,7 +125,7 @@ func main() {
 							}
 							defer resp.Body.Close()
 
-							out, err := os.Create(directory + "/" + filename)
+							out, err := os.Create(targetDirectory + "/" + filename)
 							if err != nil {
 								log.Println("ERR", err.Error())
 								continue

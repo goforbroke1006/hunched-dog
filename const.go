@@ -26,4 +26,4 @@ var hosts = []string{
 var allowedFilePorts = []int{22114, 22115, 22116}
 var allowedPorts = []int{22334, 22335, 22336}
 
-var directory = "/home/goforbroke/Downloads"
+//var directory = "/home/goforbroke/Downloads"
