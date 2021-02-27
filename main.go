@@ -57,21 +57,25 @@ func main() {
 					resp, err := http.Get(fmt.Sprintf("http://%s:%d/registry", h, p))
 					if err != nil {
 						log.Println("ERR", err.Error())
+						continue
 					}
 
 					bytes, err := ioutil.ReadAll(resp.Body)
 					if err != nil {
 						log.Println("ERR", err.Error())
+						continue
 					}
 					remoteReg := internal.Registry{}
 					err = json.Unmarshal(bytes, &remoteReg)
 					if err != nil {
 						log.Println("ERR", err.Error())
+						continue
 					}
 
 					localReg, err := internal.GetLocal(directory)
 					if err != nil {
 						log.Println("ERR", err.Error())
+						continue
 					}
 					diffReg := internal.Diff(localReg, remoteReg)
 
