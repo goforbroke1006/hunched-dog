@@ -3,6 +3,7 @@ package internal
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type MetaFile struct {
@@ -20,8 +21,11 @@ func GetLocal(directory string) (Registry, error) {
 		if err != nil {
 			return err
 		}
+
+		relFilename := strings.TrimPrefix(path, directory+"/")
+
 		reg = append(reg, MetaFile{
-			Filename:  path,
+			Filename:  relFilename,
 			Size:      info.Size(),
 			UpdatedAt: info.ModTime().Unix(),
 		})
