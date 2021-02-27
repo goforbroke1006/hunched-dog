@@ -77,7 +77,13 @@ func main() {
 						log.Println("ERR", err.Error())
 						continue
 					}
-					diffReg := internal.Diff(localReg, remoteReg)
+
+					dirs := internal.DiffDirs(localReg, remoteReg)
+					for _, d := range dirs {
+						os.Mkdir(d, os.ModePerm)
+					}
+
+					diffReg := internal.DiffFiles(localReg, remoteReg)
 
 					for _, filePort := range allowedFilePorts {
 						for _, filename := range diffReg {
