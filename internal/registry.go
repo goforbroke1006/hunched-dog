@@ -68,9 +68,9 @@ func DiffFiles(local, remote Registry) []string {
 			}
 			notFound = false
 
-			if rf.Size != lf.Size {
-				result = append(result, rf.Filename)
-			}
+			//if rf.Size != lf.Size {
+			//	result = append(result, rf.Filename)
+			//}
 		}
 		if notFound {
 			result = append(result, rf.Filename)
