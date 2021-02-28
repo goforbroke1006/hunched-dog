@@ -10,8 +10,8 @@ if not exist "%ProgramFiles%\hunched-dog\" (
 CALL curl -L https://github.com/goforbroke1006/hunched-dog/releases/download/0.1.0/hunched-dog__windows_amd64 --output "%ProgramFiles%\hunched-dog\hunched-dog.exe"
 
 
-sc.exe create "hunched-dog" binPath= "%ProgramFiles%\hunched-dog\hunched-dog.exe"
-echo 'Create windows service'
+:: sc.exe create "hunched-dog" binPath= "%ProgramFiles%\hunched-dog\hunched-dog.exe"
+:: echo 'Create windows service'
 
 
 if not exist "%UserProfile%\hunched-dog-cloud" (
@@ -41,5 +41,10 @@ if not exist "%ProgramFiles%\hunched-dog\config.yml" (
         @echo   - 192.168.0.88
     ) > "%ProgramFiles%\hunched-dog\config.yml"
 )
+
+shortcut /a:c /f:"%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\hunched-dog.lnk" /t:"%ProgramFiles%\hunched-dog\hunched-dog.exe"
+echo 'Add to startup applications list'
+
+start "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\hunched-dog.lnk"
 
 PAUSE
