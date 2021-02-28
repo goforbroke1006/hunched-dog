@@ -5,11 +5,48 @@ if [[ ! -d ${HOME}/.hunched-dog/ ]]; then
 fi
 
 if [[ ! -f ${HOME}/.hunched-dog/config.yml ]]; then
-  cp ./debian/config.yml ~/.hunched-dog/config.yml
+
+  sudo tee ~/.hunched-dog/config.yml >/dev/null <<EOT
+target: ${HOME}/hunched-dog-cloud
+hosts:
+  - 192.168.0.1
+  - 192.168.0.2
+  - 192.168.0.3
+  - 192.168.0.4
+  - 192.168.0.5
+  - 192.168.0.6
+  - 192.168.0.7
+  - 192.168.0.8
+  - 192.168.0.9
+  - 192.168.0.10
+  - 192.168.0.88
+
+EOT
 fi
 
-systemctl stop hunched-dog.service || true
-cp ./hunched-dog /usr/local/bin/hunched-dog
-cp ./debian/hunched-dog.service /etc/systemd/system/hunched-dog.service
-echo "Run 'systemctl start hunched-dog' to start service"
-systemctl start hunched-dog.service
+curl -L -o ./hunched-dog https://github.com/goforbroke1006/hunched-dog/releases/download/0.1.0/hunched-dog__linux_amd64
+
+sudo systemctl stop hunched-dog.service || true
+
+sudo cp ./hunched-dog /usr/local/bin/hunched-dog
+
+sudo tee /etc/systemd/system/hunched-dog.service >/dev/null <<EOT
+[Unit]
+Description=hunched dog service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=${USER}
+ExecStart=/usr/bin/env /usr/local/bin/hunched-dog
+
+[Install]
+WantedBy=multi-user.target
+
+EOT
+
+sudo systemctl start hunched-dog.service
+sudo systemctl status hunched-dog.service
