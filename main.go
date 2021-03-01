@@ -1,5 +1,3 @@
-// +build linux darwin windows
-
 package main
 
 import (
@@ -22,9 +20,11 @@ func init() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yml")
 	viper.AddConfigPath("$HOME/.hunched-dog")
+	viper.AddConfigPath("%UserProfile%/.hunched-dog")
+	viper.AddConfigPath("$UserProfile/.hunched-dog")
 	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
-	if err != nil {
+
+	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 }
