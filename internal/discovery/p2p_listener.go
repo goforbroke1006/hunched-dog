@@ -52,7 +52,7 @@ LOOP:
 			//}
 
 			//log.Println("find new peek", peer.Address)
-			log.Println(n, "bytes read from", src)
+			log.Println(n, "bytes read from", src.IP.String())
 
 			log.Println(hex.Dump(b[:n]))
 		}
