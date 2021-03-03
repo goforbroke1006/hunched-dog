@@ -1,7 +1,7 @@
 package discovery
 
 import (
-	"encoding/json"
+	"encoding/hex"
 	"log"
 	"net"
 )
@@ -45,16 +45,16 @@ LOOP:
 			if err != nil {
 				log.Fatal("ReadFromUDP failed:", err)
 			}
-			peer := Peer{}
-			err = json.Unmarshal(b, &peer)
-			if err != nil {
-				log.Fatal(err)
-			}
+			//peer := Peer{}
+			//err = json.Unmarshal(b, &peer)
+			//if err != nil {
+			//	log.Fatal(err)
+			//}
 
-			log.Println("find new peek", peer.Address)
+			//log.Println("find new peek", peer.Address)
 			log.Println(n, "bytes read from", src)
 
-			//log.Println(hex.Dump(b[:n]))
+			log.Println(hex.Dump(b[:n]))
 		}
 	}
 
