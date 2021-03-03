@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/viper"
 	"hunched-dog/internal/discovery"
 	"log"
-	"net/http"
 	"os"
 
 	"hunched-dog/pkg/shutdowner"
@@ -45,14 +44,14 @@ func main() {
 		log.Fatalln("ERR", err.Error())
 	}
 
-	go func() {
-		fs := http.FileServer(http.Dir(targetDirectory))
-		for _, port := range allowedFilePorts {
-			if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), fs); err != nil {
-				log.Println("WARN", "can't listen port", port, ":", err.Error())
-			}
-		}
-	}()
+	//go func() {
+	//	fs := http.FileServer(http.Dir(targetDirectory))
+	//	for _, port := range allowedFilePorts {
+	//		if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), fs); err != nil {
+	//			log.Println("WARN", "can't listen port", port, ":", err.Error())
+	//		}
+	//	}
+	//}()
 
 	//go func() {
 	//	http.HandleFunc("/registry", func(w http.ResponseWriter, req *http.Request) {
