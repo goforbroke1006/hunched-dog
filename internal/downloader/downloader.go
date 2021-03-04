@@ -25,6 +25,8 @@ func New(
 		httpPorts: httpPorts,
 		filePorts: filePorts,
 
+		activePeers: make(map[string]struct{}, 12),
+
 		stopInit: make(chan struct{}),
 		stopDone: make(chan struct{}),
 	}
