@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sync"
 
 	"hunched-dog/internal"
 )
@@ -35,11 +36,14 @@ type filesDownloader struct {
 	httpPorts []int
 	filePorts []int
 
+	activePeers   map[string]struct{}
+	activePeersMx sync.RWMutex
+
 	stopInit chan struct{}
 	stopDone chan struct{}
 }
 
-func (d filesDownloader) Run() {
+func (d *filesDownloader) Run() {
 LOOP:
 	for {
 		select {
@@ -52,7 +56,17 @@ LOOP:
 	d.stopDone <- struct{}{}
 }
 
-func (d filesDownloader) onNewPeer(peerIP string) {
+func (d *filesDownloader) onNewPeer(peerIP string) {
+	d.activePeersMx.RLock()
+	if _, ok := d.activePeers[peerIP]; ok {
+		return
+	}
+	d.activePeersMx.RUnlock()
+
+	d.activePeersMx.Lock()
+	d.activePeers[peerIP] = struct{}{}
+	d.activePeersMx.Unlock()
+
 	for _, port := range d.httpPorts {
 		resp, err := http.Get(fmt.Sprintf("http://%s:%d/registry", peerIP, port))
 		if err != nil {
@@ -122,9 +136,13 @@ func (d filesDownloader) onNewPeer(peerIP string) {
 
 		break
 	}
+
+	d.activePeersMx.Lock()
+	delete(d.activePeers, peerIP)
+	d.activePeersMx.Unlock()
 }
 
-func (d filesDownloader) Shutdown() {
+func (d *filesDownloader) Shutdown() {
 	d.stopInit <- struct{}{}
 	<-d.stopDone
 }
