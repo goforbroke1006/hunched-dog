@@ -8,18 +8,7 @@ if [[ ! -f ${HOME}/.hunched-dog/config.yml ]]; then
 
   sudo tee ~/.hunched-dog/config.yml >/dev/null <<EOT
 target: ${HOME}/hunched-dog-cloud
-hosts:
-  - 192.168.0.1
-  - 192.168.0.2
-  - 192.168.0.3
-  - 192.168.0.4
-  - 192.168.0.5
-  - 192.168.0.6
-  - 192.168.0.7
-  - 192.168.0.8
-  - 192.168.0.9
-  - 192.168.0.10
-  - 192.168.0.88
+multicast: 224.0.0.0:45046
 
 EOT
 fi
