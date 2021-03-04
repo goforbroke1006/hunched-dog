@@ -1,0 +1,130 @@
+package downloader
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"path"
+
+	"hunched-dog/internal"
+)
+
+func New(
+	target string,
+	peers chan string,
+	httpPorts, filePorts []int,
+) *filesDownloader {
+	return &filesDownloader{
+		target:    target,
+		peers:     peers,
+		httpPorts: httpPorts,
+		filePorts: filePorts,
+
+		stopInit: make(chan struct{}),
+		stopDone: make(chan struct{}),
+	}
+}
+
+type filesDownloader struct {
+	target    string
+	peers     chan string
+	httpPorts []int
+	filePorts []int
+
+	stopInit chan struct{}
+	stopDone chan struct{}
+}
+
+func (d filesDownloader) Run() {
+LOOP:
+	for {
+		select {
+		case <-d.stopInit:
+			break LOOP
+		case peerIP := <-d.peers:
+			d.onNewPeer(peerIP)
+		}
+	}
+	d.stopDone <- struct{}{}
+}
+
+func (d filesDownloader) onNewPeer(peerIP string) {
+	for _, port := range d.httpPorts {
+		resp, err := http.Get(fmt.Sprintf("http://%s:%d/registry", peerIP, port))
+		if err != nil {
+			log.Println("ERR", err.Error())
+			continue
+		}
+
+		bytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println("ERR", err.Error())
+			continue
+		}
+		remoteReg := internal.Registry{}
+		err = json.Unmarshal(bytes, &remoteReg)
+		if err != nil {
+			log.Println("ERR", err.Error())
+			continue
+		}
+
+		localReg, err := internal.GetLocal(d.target)
+		if err != nil {
+			log.Println("ERR", err.Error())
+			continue
+		}
+
+		dirs := internal.DiffDirs(remoteReg)
+		for _, dir := range dirs {
+			log.Println("INFO", "create directory", dir)
+			err = os.MkdirAll(path.Join(d.target, dir), os.ModePerm)
+			if err != nil {
+				log.Println("ERR", err.Error())
+				continue
+			}
+		}
+
+		diffReg := internal.DiffFiles(localReg, remoteReg)
+
+		for _, filePort := range d.filePorts {
+			for _, filename := range diffReg {
+				log.Println("INFO", "download file", filename)
+
+				// Get the data
+				resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", peerIP, filePort, filename))
+				if err != nil {
+					log.Println("ERR", err.Error())
+					continue
+				}
+				defer resp.Body.Close()
+
+				out, err := os.Create(path.Join(d.target, filename))
+				if err != nil {
+					log.Println("ERR", err.Error())
+					continue
+				}
+				defer out.Close()
+
+				// Writer the body to file
+				_, err = io.Copy(out, resp.Body)
+				if err != nil {
+					log.Println("ERR", err.Error())
+					continue
+				}
+			}
+
+			break // TODO: fix port availability check
+		}
+
+		break
+	}
+}
+
+func (d filesDownloader) Shutdown() {
+	d.stopInit <- struct{}{}
+	<-d.stopDone
+}

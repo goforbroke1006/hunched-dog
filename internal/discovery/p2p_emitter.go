@@ -1,7 +1,6 @@
 package discovery
 
 import (
-	"encoding/json"
 	"log"
 	"net"
 	"time"
@@ -10,6 +9,9 @@ import (
 func NewEmitter(address string) *p2pUDPEmitter {
 	return &p2pUDPEmitter{
 		address: address,
+
+		stopInit: make(chan struct{}),
+		stopDone: make(chan struct{}),
 	}
 }
 
@@ -35,12 +37,7 @@ LOOP:
 		case <-e.stopInit:
 			break LOOP
 		case <-ticker.C:
-			peer := Peer{Address: GetOutboundIP().String()}
-			bytes, err := json.Marshal(peer)
-			if err != nil {
-				log.Fatal(err)
-			}
-			_, _ = c.Write(bytes)
+			_, _ = c.Write([]byte("hunched-dog"))
 		}
 	}
 

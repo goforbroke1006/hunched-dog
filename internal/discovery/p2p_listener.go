@@ -1,7 +1,6 @@
 package discovery
 
 import (
-	"encoding/hex"
 	"log"
 	"net"
 )
@@ -13,17 +12,30 @@ const (
 func NewListener(address string) *p2pUDPListener {
 	return &p2pUDPListener{
 		address: address,
+
+		currentPeer: GetOutboundIP().String(),
+		peers:       make(chan string, 12),
+
+		stopInit: make(chan struct{}),
+		stopDone: make(chan struct{}),
 	}
 }
 
 type p2pUDPListener struct {
 	address string
 
+	currentPeer string
+	peers       chan string
+
 	stopInit chan struct{}
 	stopDone chan struct{}
 }
 
-func (l p2pUDPListener) Run() {
+func (l *p2pUDPListener) Peers() chan string {
+	return l.peers
+}
+
+func (l *p2pUDPListener) Run() {
 	udpAddr, err := net.ResolveUDPAddr("udp", l.address)
 	if err != nil {
 		log.Fatal(err)
@@ -45,16 +57,17 @@ LOOP:
 			if err != nil {
 				log.Fatal("ReadFromUDP failed:", err)
 			}
-			//peer := Peer{}
-			//err = json.Unmarshal(b, &peer)
-			//if err != nil {
-			//	log.Fatal(err)
-			//}
 
-			//log.Println("find new peek", peer.Address)
-			log.Println(n, "bytes read from", src.IP.String())
+			peerIP := src.IP.String()
 
-			log.Println(hex.Dump(b[:n]))
+			if l.currentPeer == peerIP { // skip current IP
+				continue
+			}
+
+			log.Println(n, "bytes read from", peerIP)
+			//log.Println(hex.Dump(b[:n]))
+
+			l.peers <- peerIP
 		}
 	}
 
@@ -62,7 +75,7 @@ LOOP:
 	l.stopDone <- struct{}{}
 }
 
-func (l p2pUDPListener) Shutdown() {
+func (l *p2pUDPListener) Shutdown() {
 	l.stopInit <- struct{}{}
 	<-l.stopDone
 }
