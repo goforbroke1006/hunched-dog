@@ -1,6 +1,10 @@
 package internal
 
 import (
+	"crypto/sha256"
+	"fmt"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +13,7 @@ import (
 type MetaFile struct {
 	Filename  string `json:"filename"`
 	Size      int64  `json:"size"`
+	Hash      string `json:"hash"`
 	UpdatedAt int64  `json:"updated_at"`
 	IsDir     bool   `json:"is_dir"`
 }
@@ -29,9 +34,15 @@ func GetLocal(directory string) (Registry, error) {
 
 		relFilename := strings.TrimPrefix(path, directory+"/")
 
+		hash := ""
+		if !info.IsDir() {
+			hash = GetFileHash(path)
+		}
+
 		reg = append(reg, MetaFile{
 			Filename:  relFilename,
 			Size:      info.Size(),
+			Hash:      hash,
 			UpdatedAt: info.ModTime().Unix(),
 			IsDir:     info.IsDir(),
 		})
@@ -68,9 +79,15 @@ func DiffFiles(local, remote Registry) []string {
 			}
 			notFound = false
 
-			//if rf.Size != lf.Size {
-			//	result = append(result, rf.Filename)
-			//}
+			if rf.Hash != lf.Hash {
+				result = append(result, rf.Filename)
+				continue
+			}
+
+			if rf.Size != lf.Size {
+				result = append(result, rf.Filename)
+				continue
+			}
 		}
 		if notFound {
 			result = append(result, rf.Filename)
@@ -78,4 +95,19 @@ func DiffFiles(local, remote Registry) []string {
 	}
 
 	return result
+}
+
+func GetFileHash(filename string) string {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		log.Fatal(err)
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
