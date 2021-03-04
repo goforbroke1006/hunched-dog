@@ -65,8 +65,8 @@ func DiffDirs(remote Registry) []string {
 	return result
 }
 
-func DiffFiles(local, remote Registry) []string {
-	result := []string{}
+func DiffFiles(local, remote Registry) Registry {
+	result := Registry{}
 
 	for _, rf := range remote {
 		if rf.IsDir {
@@ -79,18 +79,20 @@ func DiffFiles(local, remote Registry) []string {
 			}
 			notFound = false
 
-			if rf.Hash != lf.Hash {
-				result = append(result, rf.Filename)
-				continue
-			}
+			if rf.UpdatedAt > lf.UpdatedAt {
+				if rf.Hash != lf.Hash {
+					result = append(result, rf)
+					continue
+				}
 
-			if rf.Size != lf.Size {
-				result = append(result, rf.Filename)
-				continue
+				if rf.Size != lf.Size {
+					result = append(result, rf)
+					continue
+				}
 			}
 		}
 		if notFound {
-			result = append(result, rf.Filename)
+			result = append(result, rf)
 		}
 	}
 

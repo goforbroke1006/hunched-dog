@@ -29,7 +29,7 @@ func (e p2pUDPEmitter) Run() {
 	}
 	c, err := net.DialUDP("udp", nil, addr)
 
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 
 LOOP:
 	for {

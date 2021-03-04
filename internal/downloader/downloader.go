@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"time"
 
 	"hunched-dog/internal"
 )
@@ -107,18 +108,19 @@ func (d *filesDownloader) onNewPeer(peerIP string) {
 		diffReg := internal.DiffFiles(localReg, remoteReg)
 
 		for _, filePort := range d.filePorts {
-			for _, filename := range diffReg {
-				log.Println("INFO", "download file", filename)
+			for _, metaFile := range diffReg {
+				log.Println("INFO", "download file", metaFile.Filename)
 
 				// Get the data
-				resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", peerIP, filePort, filename))
+				resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", peerIP, filePort, metaFile.Filename))
 				if err != nil {
 					log.Println("ERR", err.Error())
 					continue
 				}
 				defer resp.Body.Close()
 
-				out, err := os.Create(path.Join(d.target, filename))
+				asbFilename := path.Join(d.target, metaFile.Filename)
+				out, err := os.Create(asbFilename)
 				if err != nil {
 					log.Println("ERR", err.Error())
 					continue
@@ -131,6 +133,14 @@ func (d *filesDownloader) onNewPeer(peerIP string) {
 					log.Println("ERR", err.Error())
 					continue
 				}
+
+				modificationDate := time.Unix(metaFile.UpdatedAt, 0)
+				err = os.Chtimes(asbFilename, modificationDate, modificationDate)
+				if err != nil {
+					log.Println("ERR", err.Error())
+					continue
+				}
+
 			}
 
 			break // TODO: fix port availability check
