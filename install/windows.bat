@@ -23,18 +23,7 @@ if not exist "%UserProfile%\hunched-dog-cloud" (
 if not exist "%ProgramFiles%\hunched-dog\config.yml" (
     (
         @echo target: %UserProfile%/hunched-dog-cloud
-        @echo hosts:
-        @echo   - 192.168.0.1
-        @echo   - 192.168.0.2
-        @echo   - 192.168.0.3
-        @echo   - 192.168.0.4
-        @echo   - 192.168.0.5
-        @echo   - 192.168.0.6
-        @echo   - 192.168.0.7
-        @echo   - 192.168.0.8
-        @echo   - 192.168.0.9
-        @echo   - 192.168.0.10
-        @echo   - 192.168.0.88
+        @echo multicast: 224.0.0.0:45046
     ) > "%ProgramFiles%\hunched-dog\config.yml"
 )
 
@@ -46,18 +35,7 @@ if not exist "%UserProfile%\.hunched-dog\" (
 if not exist "%UserProfile%\.hunched-dog\config.yml" (
     (
         @echo target: %UserProfile%/hunched-dog-cloud
-        @echo hosts:
-        @echo   - 192.168.0.1
-        @echo   - 192.168.0.2
-        @echo   - 192.168.0.3
-        @echo   - 192.168.0.4
-        @echo   - 192.168.0.5
-        @echo   - 192.168.0.6
-        @echo   - 192.168.0.7
-        @echo   - 192.168.0.8
-        @echo   - 192.168.0.9
-        @echo   - 192.168.0.10
-        @echo   - 192.168.0.88
+        @echo multicast: 224.0.0.0:45046
     ) > "%UserProfile%\.hunched-dog\config.yml"
 )
 
