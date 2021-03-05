@@ -1,4 +1,4 @@
-package internal
+package registry
 
 import (
 	"crypto/sha256"
@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type MetaFile struct {
@@ -32,7 +31,8 @@ func GetLocal(directory string) (Registry, error) {
 			return nil
 		}
 
-		relFilename := strings.TrimPrefix(path, directory+"/")
+		relFilename, _ := filepath.Rel(directory, path)
+		relFilename = filepath.ToSlash(relFilename)
 
 		hash := ""
 		if !info.IsDir() {

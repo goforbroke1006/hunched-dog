@@ -3,6 +3,7 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
+	"hunched-dog/internal/registry"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,8 +12,6 @@ import (
 	"path"
 	"sync"
 	"time"
-
-	"hunched-dog/internal"
 )
 
 func New(
@@ -82,20 +81,20 @@ func (d *filesDownloader) onNewPeer(peerIP string) {
 			log.Println("ERR", err.Error())
 			continue
 		}
-		remoteReg := internal.Registry{}
+		remoteReg := registry.Registry{}
 		err = json.Unmarshal(bytes, &remoteReg)
 		if err != nil {
 			log.Println("ERR", err.Error())
 			continue
 		}
 
-		localReg, err := internal.GetLocal(d.target)
+		localReg, err := registry.GetLocal(d.target)
 		if err != nil {
 			log.Println("ERR", err.Error())
 			continue
 		}
 
-		dirs := internal.DiffDirs(remoteReg)
+		dirs := registry.DiffDirs(remoteReg)
 		for _, dir := range dirs {
 			log.Println("INFO", "create directory", dir)
 			err = os.MkdirAll(path.Join(d.target, dir), os.ModePerm)
@@ -105,7 +104,7 @@ func (d *filesDownloader) onNewPeer(peerIP string) {
 			}
 		}
 
-		diffReg := internal.DiffFiles(localReg, remoteReg)
+		diffReg := registry.DiffFiles(localReg, remoteReg)
 
 		for _, filePort := range d.filePorts {
 			for _, metaFile := range diffReg {

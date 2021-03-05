@@ -3,14 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
-	"hunched-dog/internal"
-	"hunched-dog/internal/discovery"
-	"hunched-dog/internal/downloader"
-	"hunched-dog/pkg/shutdowner"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/spf13/viper"
+
+	"hunched-dog/internal/discovery"
+	"hunched-dog/internal/downloader"
+	"hunched-dog/internal/registry"
+	"hunched-dog/pkg/shutdowner"
 )
 
 func init() {
@@ -58,7 +60,7 @@ func main() {
 
 	go func() {
 		http.HandleFunc("/registry", func(w http.ResponseWriter, req *http.Request) {
-			reg, err := internal.GetLocal(targetDirectory)
+			reg, err := registry.GetLocal(targetDirectory)
 			if err != nil {
 				log.Fatal(err)
 			}
