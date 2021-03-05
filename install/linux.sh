@@ -40,4 +40,7 @@ WantedBy=multi-user.target
 EOT
 
 sudo systemctl start hunched-dog.service
+
+sleep 5
+
 sudo systemctl status hunched-dog.service
