@@ -39,9 +39,14 @@ func GetLocal(directory string) (Registry, error) {
 			hash = GetFileHash(path)
 		}
 
+		size := int64(0)
+		if !info.IsDir() {
+			size = info.Size()
+		}
+
 		reg = append(reg, MetaFile{
 			Filename:  relFilename,
-			Size:      info.Size(),
+			Size:      size,
 			Hash:      hash,
 			UpdatedAt: info.ModTime().Unix(),
 			IsDir:     info.IsDir(),
