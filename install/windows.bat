@@ -55,6 +55,12 @@ START Powershell -noexit -command "%LONG_COMMAND%"
 
 echo 'Add to startup applications list' "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\hunched-dog.lnk"
 
+CALL netsh advfirewall firewall add rule name="hunched-dog TCP fs" dir=in action=allow protocol=TCP localport=22114-22116
+CALL netsh advfirewall firewall add rule name="hunched-dog TCP http" dir=in action=allow protocol=TCP localport=22334-22336
+
+CALL netsh advfirewall firewall add rule name="hunched-dog UDP in" dir=in action=allow protocol=UDP localport=1024-65535
+CALL netsh advfirewall firewall add rule name="hunched-dog UDP out" dir=out action=allow protocol=UDP localport=1024-65535
+
 start "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\hunched-dog.lnk"
 :: Start-Process java -ArgumentList '-jar', 'MyProgram.jar' -RedirectStandardOutput '.\console.out' -RedirectStandardError '.\console.err'
 

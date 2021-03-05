@@ -28,6 +28,9 @@ func (e p2pUDPEmitter) Run() {
 		log.Fatal(err)
 	}
 	c, err := net.DialUDP("udp", nil, addr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ticker := time.NewTicker(10 * time.Second)
 
@@ -37,7 +40,17 @@ LOOP:
 		case <-e.stopInit:
 			break LOOP
 		case <-ticker.C:
-			_, _ = c.Write([]byte("hunched-dog"))
+			message := []byte("hunched-dog")
+
+			err = c.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			_, err = c.Write(message)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 

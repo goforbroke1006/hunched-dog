@@ -3,6 +3,7 @@ package discovery
 import (
 	"log"
 	"net"
+	"time"
 )
 
 const (
@@ -55,6 +56,11 @@ LOOP:
 		case <-l.stopInit:
 			break LOOP
 		default:
+			err = conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			b := make([]byte, maxDatagramSize)
 			n, src, err := conn.ReadFromUDP(b)
 			if err != nil {
