@@ -7,8 +7,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
     tags:
-      - '*'  # Push events to every tag
-      - '**' # Push events to every tag including hierarchical tags like v1.0/beta
+      - 'v*.*.*'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -51,11 +50,11 @@ jobs:
           prerelease: false
           
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v2.2.2
+        uses: softprops/action-gh-release@v1
         with:
-          name: 'hunched-dog__linux_amd64'
-          # A file, directory or wildcard pattern that describes what to upload
-          path: './build/release/hunched-dog__linux_amd64'
-          
-          
-          
+          files: |
+            build/release/hunched-dog__darwin_amd64
+            build/release/hunched-hunched-dog__linux_386
+            build/release/hunched-hunched-dog__linux_amd64
+            build/release/hunched-hunched-dog__windows_386.exe
+            build/release/hunched-hunched-dog__windows_amd64.exe

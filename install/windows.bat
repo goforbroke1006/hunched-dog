@@ -7,7 +7,7 @@ if not exist "%ProgramFiles%\hunched-dog\" (
     mkdir "%ProgramFiles%\hunched-dog\"
 )
 
-CALL curl -L https://github.com/goforbroke1006/hunched-dog/releases/download/0.1.0/hunched-dog__windows_amd64 --output "%ProgramFiles%\hunched-dog\hunched-dog.exe"
+CALL curl -L https://github.com/goforbroke1006/hunched-dog/releases/download/v0.1.2/hunched-dog__windows_amd64.exe --output "%ProgramFiles%\hunched-dog\hunched-dog.exe"
 
 
 :: sc.exe create "hunched-dog" binPath= "%ProgramFiles%\hunched-dog\hunched-dog.exe"
