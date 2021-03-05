@@ -54,9 +54,9 @@ jobs:
         with:
           files: |
             build/release/hunched-dog__darwin_amd64
-            build/release/hunched-hunched-dog__linux_386
-            build/release/hunched-hunched-dog__linux_amd64
-            build/release/hunched-hunched-dog__windows_386.exe
-            build/release/hunched-hunched-dog__windows_amd64.exe
+            build/release/hunched-dog__linux_386
+            build/release/hunched-dog__linux_amd64
+            build/release/hunched-dog__windows_386.exe
+            build/release/hunched-dog__windows_amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
