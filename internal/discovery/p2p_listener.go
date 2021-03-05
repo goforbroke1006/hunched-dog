@@ -44,7 +44,10 @@ func (l *p2pUDPListener) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_ = conn.SetReadBuffer(maxDatagramSize)
+	err = conn.SetReadBuffer(maxDatagramSize)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 LOOP:
 	for {
