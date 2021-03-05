@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VERSION=v0.1.4
+
 if [[ ! -d ${HOME}/.hunched-dog/ ]]; then
   mkdir ~/.hunched-dog/
 fi
@@ -13,7 +15,7 @@ multicast: 224.0.0.0:45046
 EOT
 fi
 
-curl -L -o ./hunched-dog https://github.com/goforbroke1006/hunched-dog/releases/download/0.1.1/hunched-dog__linux_amd64
+curl -L -o ./hunched-dog https://github.com/goforbroke1006/hunched-dog/releases/download/${VERSION}/hunched-dog__linux_amd64
 
 sudo systemctl stop hunched-dog.service || true
 
